@@ -128,3 +128,100 @@ python -m pip install \
     scikit-image==0.25.2
 
 ```
+
+## SLURM Job Script Example
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=cad
+#SBATCH --partition debug
+#SBATCH --nodes=1
+#SBATCH --gpus-per-node=4
+#SBATCH --exclusive
+#SBATCH --time=00:15:00
+##SBATCH --environment=taming-transformer-pytorch-250325
+#SBATCH --account=sd24
+#SBATCH --output=/capstor/scratch/cscs/ssaha/Experiments/CAD-August-8-2025/daint_exp_07-08-2025-001_debug/bs_0_ngpu_4_250808_1141_70540/slurm_out_%j.out  # output log file
+
+CONFIG=no-defined
+ODE_PATH=/capstor/scratch/cscs/ssaha/Jobs/cad
+CODE_TARGZ_FILE_NAME=250808_114151_cd6941f6.tar.gz
+
+echo "*** CONFIG ***"
+echo $CONFIG
+echo "*** CODE_PATH ***"
+echo $CODE_PATH
+echo "*** CODE_FOLDER_NAME ***"
+echo 250808_114151_cd6941f6
+echo "*** CODE_TARGZ_FILE_NAME ***"
+echo $CODE_TARGZ_FILE_NAME
+
+# Where your Docker environment config lives
+TOML_PATH="/users/ssaha/.edf/docker4cad.toml"
+
+# Distributed training setup
+#export MASTER_ADDR=$(hostname) # Activate if you use DistributedDataParallel instead DataParallel of PyTroch
+#export MASTER_PORT=29501 # Activate if you use DistributedDataParallel instead DataParallel of PyTroch
+export OMP_NUM_THREADS=4
+
+# Seting the codebase path to PYTHONPATH
+export PYTHONPATH=/capstor/scratch/cscs/ssaha/Code/250808_114151_cd6941f6/cad/:$PYTHONPATH
+echo "*** PYTHONPATH ***"
+echo $PYTHONPATH
+
+srun --export=ALL,CONFIG="$CONFIG",CODE_PATH="$CODE_PATH",CODE_TARGZ_FILE_NAME="$CODE_TARGZ_FILE_NAME" \
+     --environment=$TOML_PATH \
+     -u -l \
+     bash -c '
+
+  # extract
+
+  echo "mkdir -p /capstor/scratch/cscs/ssaha/Code/250808_114151_cd6941f6/cad"
+  mkdir -p /capstor/scratch/cscs/ssaha/Code/250808_114151_cd6941f6/cad
+
+  echo "tar -xzf $CODE_PATH/$CODE_TARGZ_FILE_NAME -C /capstor/scratch/cscs/ssaha/Code/250808_114151_cd6941f6/cad/ --strip-components=1"
+  tar -xzf $CODE_PATH/$CODE_TARGZ_FILE_NAME -C /capstor/scratch/cscs/ssaha/Code/250808_114151_cd6941f6/cad/ --strip-components=1
+
+  # Cd to code folder
+  echo "cd /capstor/scratch/cscs/ssaha/Code/250808_114151_cd6941f6/cad/"
+  cd /capstor/scratch/cscs/ssaha/Code/250808_114151_cd6941f6/cad/
+
+  echo "[Node $SLURM_PROCID] In container: $(hostname)"
+  echo "[Node $SLURM_PROCID] PWD: $(pwd)"
+
+  # ✅ Activate your virtualenv inside the container
+  echo "source /capstor/store/cscs/sdsc/sd24/docker4cad/python_venv/cad/bin/activate"
+  source /capstor/store/cscs/sdsc/sd24/docker4cad/python_venv/cad/bin/activate
+
+  set -x
+
+  echo \" \"
+  echo \"*** which python\"
+  which python
+
+  # echo \"*** which torchrun\"
+  # which torchrun
+
+  # ✅ Optionally sanity check
+  python -c "import torch; print(\"Torch version:\", torch.__version__)"
+  python -c "import omegaconf; print(\"OmegaConf OK\")"
+  python -c "import cv2; print(\"cv2 OK\")"
+
+  # Numeric safety belt
+  export NVIDIA_TF32_OVERRIDE=0             # disable TF32 in every CUDA lib :contentReference[oaicite:0]{index=0}
+  export TORCH_FLOAT32_MATMUL_PRECISION=highest   # same, but only for PyTorch GEMMs :contentReference[oaicite:1]{index=1}
+  echo "*** Numeric Safety Belt  ***"
+  echo "NVIDIA_TF32_OVERRIDE=$NVIDIA_TF32_OVERRIDE"
+  echo "TORCH_FLOAT32_MATMUL_PRECISION=$TORCH_FLOAT32_MATMUL_PRECISION"
+
+  # Use it for Distributed Data Parallel
+  # python -m torch.distributed.run --standalone --nproc-per-node=4 main.py $CONFIG
+
+  # Use it for Data Parallel
+  export CUDA_VISIBLE_DEVICES=0,1,2,3
+  python -m scripts_2_5d_3d/main_CAD.py
+'
+
+echo "✅ Finished at: $(date)"
+
+```
