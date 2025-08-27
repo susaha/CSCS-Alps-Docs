@@ -225,14 +225,13 @@ echo "✅ Finished at: $(date)"
 
 
 ```
-# Reference:
+### 📚 BibTeX Citation  
 
 ```bibtex
-@misc{cscs_llm_inference,
-  title        = {LLM Inference},
+@misc{cscs_llm_inference_tutorial,
+  title        = {LLM Inference Tutorial: Build a Modified NGC PyTorch Container},
   author       = {{Swiss National Supercomputing Centre (CSCS)}},
   year         = {2025},
-  howpublished = {\url{https://confluence.cscs.ch/spaces/KB/pages/852176415/LLM+Inference}},
+  howpublished = {\url{https://docs.cscs.ch/tutorials/ml/llm-inference/#build-a-modified-ngc-pytorch-container}},
   note         = {Accessed: 2025-08-27}
 }
-```
