@@ -114,7 +114,7 @@ python -m venv --system-site-packages ./<ExampleEnv>
 
 ### STEP-6.3: Activate Environment and Install Libraries
 ```bash
-source /capstor/store/cscs/sdsc/<project-name>/ExampleDocker/ExampleEnv/cad/bin/activate
+source /capstor/store/cscs/sdsc/<project-name>/ExampleDocker/ExampleEnv/bin/activate
 ```
 
 Install required packages:
