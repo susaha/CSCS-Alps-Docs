@@ -225,3 +225,14 @@ echo "✅ Finished at: $(date)"
 
 
 ```
+# Reference:
+
+```bibtex
+@misc{cscs_llm_inference,
+  title        = {LLM Inference},
+  author       = {{Swiss National Supercomputing Centre (CSCS)}},
+  year         = {2025},
+  howpublished = {\url{https://confluence.cscs.ch/spaces/KB/pages/852176415/LLM+Inference}},
+  note         = {Accessed: 2025-08-27}
+}
+```
